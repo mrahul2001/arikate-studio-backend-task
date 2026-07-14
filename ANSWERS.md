@@ -89,3 +89,30 @@ The fix used select_related("customer"), which performs an SQL JOIN and loads Cu
 For reverse ForeignKey relationships, prefetch_related("items__product") performs separate bulk queries and constructs the relationships in memory, eliminating additional SQL execution during serialization.
 
 This reduced the total query count from thousands of queries to a constant number of queries independent of dataset size.
+
+
+# Section 2
+
+## Why Celery?
+
+Celery provides reliable background processing, retry support, Redis integration, and worker scalability. Compared to implementing a custom queue, it reduces engineering effort while providing production-grade task execution.
+
+---
+
+## Why Fixed Window instead of Token Bucket?
+
+The assignment allows Token Bucket, Sliding Window, or Fixed Window.
+
+I selected Fixed Window because it is straightforward to implement, has low memory overhead, and satisfies the requirement of enforcing a limit of 200 emails per minute.
+
+Although Token Bucket provides smoother traffic shaping, Fixed Window was sufficient for the required throughput while keeping the implementation simpler.
+
+---
+
+## What happens if the worker receives SIGKILL?
+
+The worker acknowledges tasks only after successful completion because `acks_late=True` is enabled.
+
+If a worker crashes before acknowledging the task, Redis still considers the task unacknowledged. With `CELERY_TASK_REJECT_ON_WORKER_LOST=True`, Celery requeues the task so another worker can execute it.
+
+This prevents in-flight tasks from being lost.
