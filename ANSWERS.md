@@ -116,3 +116,42 @@ The worker acknowledges tasks only after successful completion because `acks_lat
 If a worker crashes before acknowledging the task, Redis still considers the task unacknowledged. With `CELERY_TASK_REJECT_ON_WORKER_LOST=True`, Celery requeues the task so another worker can execute it.
 
 This prevents in-flight tasks from being lost.
+
+
+# Section 3
+
+## Why use a custom Manager?
+
+The custom TenantManager automatically scopes every queryset to the current tenant. This prevents developers from accidentally exposing data by forgetting to call `.filter(tenant=...)`.
+
+For example, calling `Order.objects.all()` automatically applies the tenant filter, ensuring only records belonging to the current tenant are returned.
+
+---
+
+## Middleware
+
+TenantMiddleware extracts the tenant from the `X-Tenant` request header and stores it in thread-local storage for the lifetime of the request.
+
+After the response is returned, the middleware clears the tenant context to prevent leakage into subsequent requests handled by the same worker thread.
+
+---
+
+## Failure modes of thread-local storage
+
+Thread-local storage works correctly for synchronous Django views because each request is processed on its own thread.
+
+However, in asynchronous Django views multiple coroutines can execute on the same thread. Since thread-local variables are shared by every coroutine running on that thread, tenant information may leak between concurrent requests.
+
+This could result in one request reading another tenant's context, violating tenant isolation.
+
+---
+
+## Async-safe solution
+
+For asynchronous Django applications I would replace `threading.local()` with Python's `contextvars.ContextVar`.
+
+Unlike thread-local storage, ContextVar maintains values per asynchronous execution context rather than per thread.
+
+Each coroutine receives its own isolated tenant context, preventing data leakage between concurrent async requests while preserving automatic ORM scoping.
+
+Therefore ContextVar is the recommended approach for modern asynchronous Django applications.
