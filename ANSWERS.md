@@ -155,3 +155,26 @@ Unlike thread-local storage, ContextVar maintains values per asynchronous execut
 Each coroutine receives its own isolated tenant context, preventing data leakage between concurrent async requests while preserving automatic ORM scoping.
 
 Therefore ContextVar is the recommended approach for modern asynchronous Django applications.
+
+
+# Section 4
+
+## Question A — Django Admin Performance
+
+A primary key index alone is not sufficient to ensure good performance in Django Admin when working with tables containing hundreds of thousands of records. The first issue I would investigate is **N+1 queries** caused by related models displayed in the admin list page. If `list_display` includes foreign key fields, Django may execute additional queries for every row. I would use `list_select_related` in the `ModelAdmin` to fetch related objects using SQL joins. For many-to-many relationships, I would override `get_queryset()` and use `prefetch_related()` to reduce the number of database queries significantly.
+
+The second issue is **inefficient relationship widgets**. By default, Django loads all related objects into dropdowns, which becomes extremely slow for large tables. I would replace these with `autocomplete_fields` or `raw_id_fields` so related records are fetched only when searched, reducing both memory usage and page load time.
+
+The third issue is **expensive search and ordering**. Admin searches configured through `search_fields` generate SQL `LIKE` queries that can become slow on large text columns. I would limit `search_fields` to indexed columns where appropriate and create additional database indexes for frequently searched fields. I would also review `ModelAdmin.ordering` to avoid unnecessary sorting on non-indexed columns.
+
+These optimizations reduce SQL queries, minimize unnecessary data loading, and improve overall admin responsiveness while remaining fully compatible with Django's built-in admin interface.
+
+---
+
+## Question B — Pagination Trade-offs
+
+Offset-based pagination retrieves records using SQL `LIMIT` and `OFFSET`. It is straightforward to implement and allows users to jump directly to any page, making it suitable for administrative dashboards and reporting interfaces. However, as the offset increases, the database must scan and discard an increasing number of rows before returning the requested page. This results in slower queries for large datasets. Additionally, if records are inserted or deleted while a user is paginating, the client may observe duplicate or skipped records because the row positions change.
+
+Cursor-based pagination uses a stable, indexed field such as a primary key or timestamp to identify the last record returned. Instead of requesting page numbers, the client sends the cursor from the previous response. The database continues scanning from that point using indexed lookups, avoiding expensive offset scans. Cursor pagination also provides consistent results when records are inserted or deleted during pagination, making it ideal for continuously changing datasets.
+
+For mobile applications implementing infinite scrolling, I would choose cursor pagination because it offers better scalability, lower query latency, and consistent ordering even under concurrent writes. For internal admin panels or reporting tools where users need direct access to arbitrary pages, offset pagination remains appropriate despite its reduced efficiency on very large datasets. The choice depends on whether scalability and consistency or random page access is the primary requirement.
