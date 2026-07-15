@@ -247,6 +247,8 @@ GET /api/orders/summary/
 GET /api/orders/summary_optimized/
 ```
 
+![alt text](<Screenshot (292).png>)
+
 ---
 
 ## Section 2
