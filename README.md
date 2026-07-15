@@ -95,8 +95,28 @@ artikate_backend/
 
 ```bash
 git clone <repository-url>
-cd artikate-studio-backend-task
+cd arikate-studio-backend-task
 
+```
+
+---
+
+## (Optional) Create a Virtual Environment
+
+Although the project can be run using your existing Python installation, it is recommended to use a virtual environment to isolate dependencies.
+
+### Windows
+
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
+
+### Linux / macOS
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
 ```
 
 ---
