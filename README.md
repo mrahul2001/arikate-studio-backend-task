@@ -1,17 +1,28 @@
 # Artikate Studio Backend Developer Assessment
 
-Backend Developer Technical Assessment completed using **Python**, **Django**, **PostgreSQL**, **Celery**, and **Redis**.
+Backend Developer Technical Assessment completed using **Python**, **Django**, **PostgreSQL**, **Celery**, **Redis**, and **Docker**.
+
+## Assessment Coverage
 
 ---
 
-## Tech Stack
+✔ Section 1 – Diagnose a Broken System
+
+✔ Section 2 – Async Email Queue
+
+✔ Section 3 – Multi-Tenant Data Isolation
+
+✔ Section 4 – Written Design & Architecture Answers
+
+# Tech Stack
 
 - Python 3.11+
-- Django 5.x
+- Django 5.2.16
 - Django REST Framework
 - PostgreSQL
 - Celery
-- Redis
+- Redis (Docker)
+- Docker
 - django-silk
 - unittest (Django TestCase)
 
@@ -89,35 +100,29 @@ cd artikate_backend
 
 ---
 
-## 2. Create Virtual Environment
-
-Windows
-
-```bash
-python -m venv venv
-
-venv\Scripts\activate
-```
-
-Linux / macOS
-
-```bash
-python3 -m venv venv
-
-source venv/bin/activate
-```
-
----
-
-## 3. Install Dependencies
+## 2. Install Dependencies & Configure Environment Variables
 
 ```bash
 pip install -r requirements.txt
 ```
 
+Copy the example environment file:
+
+```bash
+cp .env.example .env
+```
+
+Windows:
+
+```powershell
+copy .env.example .env
+```
+
+Update the database credentials if they differ from your local PostgreSQL installation.
+
 ---
 
-## 4. PostgreSQL
+## 3. PostgreSQL
 
 Create a PostgreSQL database.
 
@@ -126,38 +131,59 @@ Example:
 ```
 Database : artikate_db
 User     : postgres
-Password : postgres
+Password : <your_password>
 Host     : localhost
 Port     : 5432
 ```
 
-Update `config/settings.py` if required.
+Update the values in .env according to your local PostgreSQL configuration.
 
 ---
 
-## 5. Redis
+## 4. Start Redis (Docker)
 
-Start Redis.
-
-Linux/macOS
+Pull the Redis image (only once):
 
 ```bash
-redis-server
+docker pull redis
 ```
 
-Windows (Redis service)
+Run Redis container:
+
+For Windows, use:
 
 ```bash
-redis-server
+docker run -d --name redis -p 6379:6379 redis
 ```
 
-Verify:
+Linux/macOS:
 
 ```bash
-redis-cli ping
+docker run -d \
+  --name redis \
+  -p 6379:6379 \
+  redis
 ```
 
-Expected output:
+Verify Redis is running:
+
+```bash
+docker ps
+```
+
+Expected output should contain:
+
+```
+redis
+```
+
+You can also verify connectivity:
+
+```bash
+docker exec -it redis redis-cli ping
+```
+
+Expected:
 
 ```
 PONG
@@ -165,7 +191,7 @@ PONG
 
 ---
 
-## 6. Apply Migrations
+## 5. Apply Migrations
 
 ```bash
 python manage.py migrate
@@ -173,7 +199,7 @@ python manage.py migrate
 
 ---
 
-## 7. Seed Sample Data (Section 1)
+## 6. Seed Sample Data (Section 1)
 
 ```bash
 python manage.py seed_data
@@ -181,7 +207,7 @@ python manage.py seed_data
 
 ---
 
-## 8. Start Django
+## 7. Start Django Server
 
 ```bash
 python manage.py runserver
@@ -195,13 +221,14 @@ http://127.0.0.1:8000/
 
 ---
 
-## 9. Start Celery Worker
+## 8. Start Celery Worker
 
 Open another terminal.
 
 ```bash
 celery -A config worker -l info
 ```
+Ensure the Redis container is running before starting the Celery worker.
 
 ---
 
@@ -225,13 +252,13 @@ GET /api/orders/summary/
 POST /api/email/
 ```
 
-Example
+Example Request
 
 ```json
 {
-    "recipient":"user@test.com",
-    "subject":"Hello",
-    "body":"Testing Email"
+    "recipient": "user@test.com",
+    "subject": "Hello",
+    "body": "Testing Email"
 }
 ```
 
@@ -245,7 +272,7 @@ Example
 GET /api/tenant/orders/
 ```
 
-Header
+Required Header
 
 ```
 X-Tenant: TenantA
@@ -257,11 +284,12 @@ X-Tenant: TenantA
 
 Silk is enabled for profiling Section 1.
 
-Open:
+Access:
 
 ```
 http://127.0.0.1:8000/silk/
 ```
+Silk is available after starting the Django server. Log in using the Django admin account if authentication is enabled.
 
 The profiler demonstrates the reduction in SQL queries before and after applying `select_related()` and `prefetch_related()`.
 
@@ -272,17 +300,17 @@ The profiler demonstrates the reduction in SQL queries before and after applying
 Run all tests:
 
 ```bash
-python manage.py test
+python manage.py test --settings=config.test_settings
 ```
 
 Run individual sections:
 
 ```bash
-python manage.py test section1
+python manage.py test --settings=config.test_settings section1
 
-python manage.py test section2
+python manage.py test --settings=config.test_settings section2
 
-python manage.py test section3
+python manage.py test --settings=config.test_settings section3
 ```
 
 ---
@@ -303,13 +331,14 @@ The repository contains:
 
 - Root cause identified as an N+1 Query problem
 - ORM optimization using `select_related()` and `prefetch_related()`
-- Query count verified with django-silk
+- Query count verified using django-silk
 
 ---
 
 ## Section 2
 
 - Celery + Redis architecture
+- Redis running inside Docker
 - Fixed Window Rate Limiter implemented using Redis Lua scripting
 - Atomic Redis operations
 - Exponential retry strategy
@@ -331,7 +360,8 @@ The repository contains:
 
 # Assumptions
 
-- PostgreSQL and Redis are running locally.
+- PostgreSQL is running locally.
+- Redis is running inside a Docker container.
 - Tenant identification is performed using the `X-Tenant` request header for simplicity.
 - Email delivery is mocked for demonstration and testing purposes.
 
@@ -339,4 +369,6 @@ The repository contains:
 
 # Notes
 
-This project was developed as part of the **Artikate Studio Backend Developer Assessment**. The focus is on clean architecture, correctness, systems thinking, ORM optimization, reliable background processing, and automated testing rather than production deployment.
+This project was developed as part of the **Artikate Studio Backend Developer Assessment**.
+
+While developed as part of a technical assessment, the project follows production-oriented engineering practices including ORM optimization, asynchronous background processing, automated testing, secure configuration management using environment variables, and multi-tenant data isolation.
