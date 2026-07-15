@@ -243,6 +243,10 @@ Ensure the Redis container is running before starting the Celery worker.
 GET /api/orders/summary/
 ```
 
+```
+GET /api/orders/summary_optimized/
+```
+
 ---
 
 ## Section 2
