@@ -248,6 +248,8 @@ GET /api/orders/summary_optimized/
 ```
 
 ![alt text](<Screenshot (292).png>)
+=======
+<img width="1920" height="1035" alt="Screenshot (292)" src="https://github.com/user-attachments/assets/eb0f2dba-e6f2-445e-b443-4482d354069b" />
 
 ---
 
