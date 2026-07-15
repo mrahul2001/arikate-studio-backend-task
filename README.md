@@ -247,7 +247,7 @@ GET /api/orders/summary/
 GET /api/orders/summary_optimized/
 ```
 
-<img width="1920" height="1080" alt="Screenshot (292)" src="https://github.com/user-attachments/assets/7b2bcfc0-f772-4995-bb9a-946d62b50c9b" />
+<img width="1920" height="1035" alt="Screenshot (292)" src="https://github.com/user-attachments/assets/eb0f2dba-e6f2-445e-b443-4482d354069b" />
 
 
 ---
