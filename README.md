@@ -4,8 +4,6 @@ Backend Developer Technical Assessment completed using **Python**, **Django**, *
 
 ## Assessment Coverage
 
----
-
 ✔ Section 1 – Diagnose a Broken System
 
 ✔ Section 2 – Async Email Queue
@@ -13,6 +11,8 @@ Backend Developer Technical Assessment completed using **Python**, **Django**, *
 ✔ Section 3 – Multi-Tenant Data Isolation
 
 ✔ Section 4 – Written Design & Architecture Answers
+
+---
 
 # Tech Stack
 
@@ -95,7 +95,8 @@ artikate_backend/
 
 ```bash
 git clone <repository-url>
-cd artikate_backend
+cd artikate-studio-backend-task
+
 ```
 
 ---
